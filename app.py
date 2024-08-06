@@ -1,11 +1,9 @@
-from flask import Flask, request, jsonify, send_file, Response
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import json
 import os
-from flask_cors import CORS
 
 app = Flask(__name__)
-
-
 CORS(app)  # Enable CORS for all routes in the app
 
 # Path to the JSON file where data will be saved
@@ -13,17 +11,27 @@ json_file_path = "data.json"
 
 # Function to load existing data from the JSON file
 def load_data():
-    if os.path.exists(json_file_path):
-        with open(json_file_path, 'r') as file:
-            return json.load(file)
+    try:
+        if os.path.exists(json_file_path):
+            with open(json_file_path, 'r') as file:
+                return json.load(file)
+    except json.JSONDecodeError as jde:
+        app.logger.error("Failed to decode JSON from the file: %s", jde)
+        return []
+    except Exception as e:
+        app.logger.error(f"Error loading data: {e}")
     return []
 
 # Function to save data to the JSON file
 def save_data(data):
-    with open(json_file_path, 'w') as file:
-        json.dump(data, file, indent=4)
+    try:
+        with open(json_file_path, 'w') as file:
+            json.dump(data, file, indent=4)
+            app.logger.info("Data successfully saved.")
+    except Exception as e:
+        app.logger.error(f"Error saving data: {e}")
 
-@app.route('/', methods=['POST','GET'])
+@app.route('/', methods=['POST', 'GET'])
 def index():
     return "API"
 
@@ -31,16 +39,19 @@ def index():
 def submit():
     try:
         if not request.is_json:
+            app.logger.error("Request is not JSON.")
             return jsonify({"message": "Invalid JSON"}), 400
-        
+
         data = request.get_json()
-        
+        app.logger.info("Received data: %s", data)
+
         name = data.get('name')
         phone_number = data.get('phone_number')
         date = data.get('date')
         time = data.get('time')
 
         if not all([name, phone_number, date, time]):
+            app.logger.error("Missing data: %s", data)
             return jsonify({"message": "Missing data!"}), 400
 
         # Load existing data
@@ -59,21 +70,17 @@ def submit():
 
         return jsonify({"message": "Data saved successfully!"}), 201
     except Exception as e:
-        app.logger.error(f"Error: {e}")
+        app.logger.error(f"Error in submit: {e}")
         return jsonify({"message": str(e)}), 500
 
 @app.route('/data', methods=['GET'])
 def get_data():
     try:
-        if os.path.exists(json_file_path):
-            with open(json_file_path, 'r') as file:
-                data = json.load(file)
-            return jsonify(data)
-        else:
-            return jsonify({"message": "File not found"}), 404
+        data = load_data()
+        return jsonify(data)
     except Exception as e:
-        app.logger.error(f"Error: {e}")
+        app.logger.error(f"Error retrieving data: {e}")
         return jsonify({"message": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
