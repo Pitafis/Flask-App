@@ -23,6 +23,10 @@ def save_data(data):
     with open(json_file_path, 'w') as file:
         json.dump(data, file, indent=4)
 
+@app.route('/', methods=['POST','GET'])
+def index():
+    return "API"
+
 @app.route('/submit', methods=['POST'])
 def submit():
     try:
