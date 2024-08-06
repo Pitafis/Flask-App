@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes in the app
 
 # Path to the JSON file where data will be saved
-json_file_path = "data.json"
+json_file_path = os.path.join(os.path.dirname(__file__), 'data.json')
 
 # Function to load existing data from the JSON file
 def load_data():
@@ -16,7 +16,7 @@ def load_data():
             with open(json_file_path, 'r') as file:
                 return json.load(file)
     except json.JSONDecodeError as jde:
-        app.logger.error("Failed to decode JSON from the file: %s", jde)
+        app.logger.error(f"Failed to decode JSON from the file: {jde}")
         return []
     except Exception as e:
         app.logger.error(f"Error loading data: {e}")
@@ -27,7 +27,7 @@ def save_data(data):
     try:
         with open(json_file_path, 'w') as file:
             json.dump(data, file, indent=4)
-            app.logger.info("Data successfully saved.")
+            app.logger.info("Data successfully saved to JSON file.")
     except Exception as e:
         app.logger.error(f"Error saving data: {e}")
         raise e
