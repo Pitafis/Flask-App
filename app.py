@@ -30,6 +30,7 @@ def save_data(data):
             app.logger.info("Data successfully saved.")
     except Exception as e:
         app.logger.error(f"Error saving data: {e}")
+        raise e
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
