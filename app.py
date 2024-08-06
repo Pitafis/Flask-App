@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes in the app
 
 # Path to the JSON file where data will be saved
-json_file_path = os.path.join(os.getcwd(), 'data.json')
+json_file_path = "data.json"
 
 # Function to load existing data from the JSON file
 def load_data():
